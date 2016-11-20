@@ -85,7 +85,7 @@ print('corpus length:', len(original_text))
     create two sets of data: training: 75% of data and testing: 25% of data
 '''
 
-original_text = original_text#[0:10000]
+original_text = original_text[0:10000]
 original_text_length = len(original_text)
 
 # Refined Text
@@ -333,8 +333,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-y_true = []
-y_pred = []
+
 statistics_result = ''
 accuracy_in_first_80_chars = 0.0
 number_of_epoch = 1
@@ -361,6 +360,8 @@ for iteration in range(1, 31):
         refined_testing_data_index = 0
         correct_shamsi_tashdid = 0.0
         wrong_shamsi_tashdid = 0.0
+        y_true = []
+        y_pred = []
         for i in range(maxlen - 1, len(testing_data)):
             sentence = generated[len(generated) - maxlen + 1:] + testing_data[i]
 
@@ -411,7 +412,7 @@ for iteration in range(1, 31):
         statistics_result += '\nWrong Predictions: ' + str(wrong_prediction)
         statistics_result += '\nAccuracy in first 80 characters: ' + \
                              str(accuracy_in_first_80_chars) + ' %'
-        statistics_result += '\nAccuracy in of Shamsi Tashdid prediction in whole Testing data: ' + \
+        statistics_result += '\nAccuracy of Shamsi Tashdid prediction in whole Testing data: ' + \
                              str(round((correct_shamsi_tashdid/(correct_shamsi_tashdid + wrong_shamsi_tashdid)) * 100, 4)) + ' %'
 
         statistics_result += '\nAccuracy in Entire Testing data: ' + \
