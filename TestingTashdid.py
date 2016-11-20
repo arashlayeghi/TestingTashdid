@@ -85,7 +85,7 @@ print('corpus length:', len(original_text))
     create two sets of data: training: 75% of data and testing: 25% of data
 '''
 
-original_text = original_text[0:10000]
+original_text = original_text#[0:10000]
 original_text_length = len(original_text)
 
 # Refined Text
@@ -336,7 +336,7 @@ def sample(preds, temperature=1.0):
 
 statistics_result = ''
 accuracy_in_first_80_chars = 0.0
-number_of_epoch = 1
+number_of_epoch = 10
 for iteration in range(1, 31):
     with open(EXPERIMENT_CONFIGURATION + '_Output.txt', mode='a') as f:
         f.write('\n')
