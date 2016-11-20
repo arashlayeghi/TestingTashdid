@@ -317,7 +317,7 @@ model.add(GRU(nn, return_sequences=True, input_shape=(maxlen, len(all_chars))))
 
 model.add(GRU(nn))
 model.add(Dense((len(diacritics))))
-model.add(Activation('softmax'))
+model.add(Activation('sigmoid'))
 
 optimizer = 'rmsprop'
 model.compile(loss='categorical_crossentropy', optimizer=optimizer)
@@ -338,7 +338,7 @@ statistics_result = ''
 accuracy_in_first_80_chars = 0.0
 number_of_epoch = 10
 for iteration in range(1, 31):
-    with open(EXPERIMENT_CONFIGURATION + '_Output.txt', mode='a') as f:
+    with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding="utf-8", mode='a') as f:
         f.write('\n')
         f.write(('-' * 50) + '\n')
         f.write('\nIteration ' + str(iteration) + '\n')
@@ -347,7 +347,7 @@ for iteration in range(1, 31):
     model.fit(X, y, batch_size=nn*10, nb_epoch=number_of_epoch)
 
     for diversity in [1.0]:
-        with open(EXPERIMENT_CONFIGURATION + '_Output.txt', mode='a') as f:
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding="utf-8", mode='a') as f:
             f.write('\n')
             f.write('----- diversity: ' + str(diversity) + '\n')
 
@@ -399,7 +399,7 @@ for iteration in range(1, 31):
         for k, v in diacritics_mappings.items():
             generated = generated.replace(v, k)
 
-        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8-sig', mode='a') as f:
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8', mode='a') as f:
             f.write('-----test data with diacritics: \n' + generated)
 
         statistics_result = 'Iteration ' + str(iteration)
@@ -428,10 +428,10 @@ for iteration in range(1, 31):
                                                                              labels=np.array(list(diacritics))))
         statistics_result += str('\n' + ('*' * 50) + '\n\n')
 
-        with open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8-sig', mode='a') as f:
-           f.write(statistics_result)
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8', mode='a') as f:
+            f.write(statistics_result)
 
-        with open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8-sig', mode='a') as f:
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8', mode='a') as f:
             f.write('\nEnd time: ' + str(datetime.now()) + '\n' + '\n')
 
 
