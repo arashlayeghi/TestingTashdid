@@ -412,6 +412,10 @@ for iteration in range(1, 31):
         statistics_result += '\nWrong Predictions: ' + str(wrong_prediction)
         statistics_result += '\nAccuracy in first 80 characters: ' + \
                              str(accuracy_in_first_80_chars) + ' %'
+
+        statistics_result += '\nCorrect Shamsi Predictions: ' + str(correct_shamsi_tashdid)
+        statistics_result += '\nWrong Shamsi Predictions: ' + str(wrong_shamsi_tashdid)
+
         statistics_result += '\nAccuracy of Shamsi Tashdid prediction in whole Testing data: ' + \
                              str(round((correct_shamsi_tashdid/(correct_shamsi_tashdid + wrong_shamsi_tashdid)) * 100, 4)) + ' %'
 
