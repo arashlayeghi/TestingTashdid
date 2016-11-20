@@ -190,13 +190,12 @@ else:
         refined_testing_data += testing_data[i]
     else:
         refined_testing_data += testing_data[i] + SAKEN_CHAR
-		
-		
-	
-	refined_testing_data = refined_testing_data.lstrip(''.join(diacritics))
 
 
-   # testing_data = refined_testing_data  # think about if it is correct to add this line
+    refined_testing_data = refined_testing_data.lstrip(''.join(diacritics))
+
+
+    # testing_data = refined_testing_data  # think about if it is correct to add this line
     # preparing testing data
     for c in diacritics:
         testing_data = testing_data.replace(c, '')
@@ -352,8 +351,8 @@ for iteration in range(1, 31):
         correct_prediction = 0.0
         wrong_prediction = 0.0
         refined_testing_data_index = 0
-		y_true = []
-		y_pred = []
+        y_true = []
+        y_pred = []
         for i in range(maxlen - 1, len(testing_data)):
             sentence = generated[len(generated) - maxlen + 1:] + testing_data[i]
 
@@ -405,7 +404,7 @@ for iteration in range(1, 31):
                                                                              labels=np.array(list(diacritics))))
         statistics_result += str('\n' + ('*' * 50) + '\n\n')
 
-         with open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8-sig', mode='a') as f:
+        with open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8-sig', mode='a') as f:
            f.write(statistics_result)
 
         with open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8-sig', mode='a') as f:
