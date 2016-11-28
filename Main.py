@@ -18,6 +18,7 @@ import os.path
 '''
 EXPERIMENT_CONFIGURATION = '1_Bidirectional_without_Dropout_optimizer_rmsprop'
 maxlen = 65
+maxlen_after = 10
 
 SAKEN_CHAR = 'ْ'
 
@@ -76,7 +77,7 @@ print('corpus length:', len(original_text))
     create two sets of data: training: 75% of data and testing: 25% of data
 '''
 
-original_text = original_text#[0:1000000]
+original_text = original_text#[0:10000]
 original_text_length = len(original_text)
 
 # Refined Text
@@ -134,23 +135,6 @@ else:
         f.write(refined_text)
 
 
-'''
-refined_text = ''
-for i in range(0, len(training_data) - 1):
-    if training_data[i] in diacritics:
-        refined_text += training_data[i]
-    elif training_data[i + 1] not in diacritics:
-        refined_text += training_data[i] + SAKEN_CHAR
-    else:
-        refined_text += training_data[i]
-i += 1
-if training_data[i] in diacritics:
-    refined_text += training_data[i]
-else:
-    refined_text += training_data[i] + SAKEN_CHAR
-#print('refined_text', refined_text)
-'''
-
 ########################################################################
 '''
     do it again for testing data for calculating accuracy at the end
@@ -190,7 +174,6 @@ else:
         refined_testing_data += testing_data[i]
     else:
         refined_testing_data += testing_data[i] + SAKEN_CHAR
-
 
     refined_testing_data = refined_testing_data.lstrip(''.join(diacritics))
 
@@ -250,23 +233,18 @@ next_chars = []
 refined_text_tokens = re.split('[.]', refined_text)
 for token in refined_text_tokens:
     token = token.lstrip(''.join(diacritics))
-    for i in range(0, len(token) - maxlen, step):
-        sentences.append(token[i: i + maxlen])
+    token_length = len(token)
+    token += maxlen_after * ' '
+    for i in range(0, token_length - maxlen, step):
+        rx = '[' + re.escape(''.join(diacritics)) + ']'
+        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + maxlen_after])
+        sentences.append(token[i: i + maxlen] + after_chars)
         next_chars.append(token[i + maxlen])
 
-'''
-for i in range(0, len(refined_text) - maxlen, step):
-    sentences.append(refined_text[i: i + maxlen])
-    next_chars.append(refined_text[i + maxlen])
-'''
-
-#with open('refined_text.txt', mode='w+') as f:
-#with codecs.open('refined_text.txt', encoding='utf-8', mode='w+') as f:
-#    f.write(refined_text)
 
 print('nb sequences:', len(sentences))
 print('Vectorization...')
-X = np.zeros((len(sentences), maxlen, len(all_chars)), dtype=np.bool)
+X = np.zeros((len(sentences), maxlen + maxlen_after, len(all_chars)), dtype=np.bool)
 y = np.zeros((len(sentences), len(diacritics)), dtype=np.bool)
 for i, sentence in enumerate(sentences):
     for t, char in enumerate(sentence):
@@ -284,29 +262,10 @@ with codecs.open('inputs.txt', encoding='utf-8', mode='w+') as f:
 print('Build model...')
 
 nn = 32
-#model = Sequential()
-#model.add(Bidirectional(GRU(nn, return_sequences=True), input_shape=(maxlen, len(all_chars))))
-#model.add(Dropout(0.20))
-#model.add(Bidirectional(GRU(nn, return_sequences=True)))
-#model.add(Dropout(0.20))
-#model.add(Bidirectional(GRU(nn, return_sequences=True)))
-#model.add(Dropout(0.20))
-#model.add(Bidirectional(GRU(nn)))
-#model.add(Dropout(0.20))
-#model.add(Dense((len(diacritics))))
-#model.add(Activation('softmax'))
 
 nn=64
 model = Sequential()
-model.add(GRU(nn, return_sequences=True, input_shape=(maxlen, len(all_chars))))
-
-#model.add(Dropout(0.10))
-#model.add(GRU(nn, return_sequences=True))
-#model.add(Dropout(0.10))
-#model.add(GRU(nn, return_sequences=True))
-#model.add(Dropout(0.10))
-#model.add(GRU(nn, return_sequences=True))
-#model.add(Dropout(0.10))
+model.add(GRU(nn, return_sequences=True, input_shape=(maxlen + maxlen_after, len(all_chars))))
 
 model.add(GRU(nn))
 model.add(Dense((len(diacritics))))
@@ -326,6 +285,9 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
+testing_data_length = len(testing_data)
+testing_data += maxlen_after * ' '
+refined_testing_data += maxlen_after * (' ' + SAKEN_CHAR)
 
 statistics_result = ''
 accuracy_in_first_80_chars = 0.0
@@ -353,10 +315,10 @@ for iteration in range(1, 31):
         refined_testing_data_index = 0
         y_true = []
         y_pred = []
-        for i in range(maxlen - 1, len(testing_data)):
-            sentence = generated[len(generated) - maxlen + 1:] + testing_data[i]
+        for i in range(maxlen - 1, testing_data_length):
+            sentence = generated[len(generated) - maxlen + 1:] + testing_data[i] + testing_data[i + 1: i + 1 + maxlen_after]
 
-            x = np.zeros((1, maxlen, len(all_chars)))
+            x = np.zeros((1, maxlen + maxlen_after, len(all_chars)))
             for t, char in enumerate(sentence):
                 x[0, t, char_indices[char]] = 1.
 
@@ -409,7 +371,6 @@ for iteration in range(1, 31):
 
         with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8', mode='a') as f:
             f.write('\nEnd time: ' + str(datetime.now()) + '\n' + '\n')
-
 
 
         # model.save(EXPERIMENT_CONFIGURATION + '_Model.h5', overwrite=True)
