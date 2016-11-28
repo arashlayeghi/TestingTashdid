@@ -18,6 +18,7 @@ import os.path
 '''
 EXPERIMENT_CONFIGURATION = '1_Bidirectional_without_Dropout_optimizer_rmsprop'
 maxlen = 65
+maxlen_after = 10
 
 SAKEN_CHAR = 'ْ'
 
@@ -257,8 +258,12 @@ next_chars = []
 refined_text_tokens = re.split('[.]', refined_text)
 for token in refined_text_tokens:
     token = token.lstrip(''.join(diacritics))
-    for i in range(0, len(token) - maxlen, step):
-        sentences.append(token[i: i + maxlen])
+    token_length = len(token)
+    token += maxlen_after * ' '
+    for i in range(0, token_length - maxlen, step):
+        rx = '[' + re.escape(''.join(diacritics)) + ']'
+        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + maxlen_after])
+        sentences.append(token[i: i + maxlen] + after_chars)
         next_chars.append(token[i + maxlen])
 
 '''
@@ -273,7 +278,7 @@ for i in range(0, len(refined_text) - maxlen, step):
 
 print('nb sequences:', len(sentences))
 print('Vectorization...')
-X = np.zeros((len(sentences), maxlen, len(all_chars)), dtype=np.bool)
+X = np.zeros((len(sentences), maxlen + maxlen_after, len(all_chars)), dtype=np.bool)
 y = np.zeros((len(sentences), len(diacritics)), dtype=np.bool)
 for i, sentence in enumerate(sentences):
     for t, char in enumerate(sentence):
@@ -305,7 +310,7 @@ nn = 32
 
 nn=64
 model = Sequential()
-model.add(GRU(nn, return_sequences=True, input_shape=(maxlen, len(all_chars))))
+model.add(GRU(nn, return_sequences=True, input_shape=(maxlen + maxlen_after, len(all_chars))))
 
 #model.add(Dropout(0.10))
 #model.add(GRU(nn, return_sequences=True))
@@ -333,6 +338,9 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
+testing_data_length = len(testing_data)
+testing_data += maxlen_after * ' '
+refined_testing_data += maxlen_after * (' ' + SAKEN_CHAR)
 
 statistics_result = ''
 accuracy_in_first_80_chars = 0.0
@@ -362,10 +370,10 @@ for iteration in range(1, 31):
         wrong_shamsi_tashdid = 0.0
         y_true = []
         y_pred = []
-        for i in range(maxlen - 1, len(testing_data)):
-            sentence = generated[len(generated) - maxlen + 1:] + testing_data[i]
+        for i in range(maxlen - 1, testing_data_length):
+            sentence = generated[len(generated) - maxlen + 1:] + testing_data[i] + testing_data[i + 1: i + 1 + maxlen_after]
 
-            x = np.zeros((1, maxlen, len(all_chars)))
+            x = np.zeros((1, maxlen + maxlen_after, len(all_chars)))
             for t, char in enumerate(sentence):
                 x[0, t, char_indices[char]] = 1.
 
@@ -385,7 +393,7 @@ for iteration in range(1, 31):
             generated += testing_data[i] + next_diacritic
 
             #added for Testing Tashdid
-            if (generated[len(generated) - 6: len(generated) - 3] == 'اْل'):
+            if generated[len(generated) - 6: len(generated) - 3] == 'اْل':
                 if generated[len(generated) - 2] in SHAMSI_CHARS:
                     if next_diacritic == TASHDID:
                         correct_shamsi_tashdid += 1.0
