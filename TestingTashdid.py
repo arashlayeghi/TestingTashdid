@@ -259,10 +259,10 @@ refined_text_tokens = re.split('[.]', refined_text)
 for token in refined_text_tokens:
     token = token.lstrip(''.join(diacritics))
     token_length = len(token)
-    token += maxlen_after * ' '
+    token += maxlen_after * (' ' + SAKEN_CHAR)
     for i in range(0, token_length - maxlen, step):
         rx = '[' + re.escape(''.join(diacritics)) + ']'
-        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + maxlen_after])
+        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + (2 * maxlen_after)])
         sentences.append(token[i: i + maxlen] + after_chars)
         next_chars.append(token[i + maxlen])
 
