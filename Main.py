@@ -135,6 +135,7 @@ else:
         f.write(refined_text)
 
 
+
 ########################################################################
 '''
     do it again for testing data for calculating accuracy at the end
@@ -234,10 +235,10 @@ refined_text_tokens = re.split('[.]', refined_text)
 for token in refined_text_tokens:
     token = token.lstrip(''.join(diacritics))
     token_length = len(token)
-    token += maxlen_after * ' '
+    token += maxlen_after * (' ' + SAKEN_CHAR)
     for i in range(0, token_length - maxlen, step):
         rx = '[' + re.escape(''.join(diacritics)) + ']'
-        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + maxlen_after])
+        after_chars = re.sub(rx, '', token[i + maxlen + 1: i + maxlen + 1 + (2 * maxlen_after)])
         sentences.append(token[i: i + maxlen] + after_chars)
         next_chars.append(token[i + maxlen])
 
@@ -371,6 +372,7 @@ for iteration in range(1, 31):
 
         with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8', mode='a') as f:
             f.write('\nEnd time: ' + str(datetime.now()) + '\n' + '\n')
+
 
 
         # model.save(EXPERIMENT_CONFIGURATION + '_Model.h5', overwrite=True)
