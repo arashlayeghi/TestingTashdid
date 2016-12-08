@@ -266,9 +266,14 @@ nn = 32
 
 nn=64
 model = Sequential()
-model.add(GRU(nn, return_sequences=True, input_shape=(maxlen + maxlen_after, len(all_chars))))
-
+model.add(GRU(nn*4, return_sequences=True, input_shape=(maxlen + maxlen_after, len(all_chars))))
+model.add(Dropout(0.10))
+model.add(GRU(nn*3, return_sequences=True))
+model.add(Dropout(0.10))
+#model.add(GRU(nn*2, return_sequences=True))
+#model.add(Dropout(0.10))
 model.add(GRU(nn))
+model.add(Dropout(0.10))
 model.add(Dense((len(diacritics))))
 model.add(Activation('softmax'))
 
