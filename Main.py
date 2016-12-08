@@ -77,7 +77,7 @@ print('corpus length:', len(original_text))
     create two sets of data: training: 75% of data and testing: 25% of data
 '''
 
-original_text = original_text#[0:10000]
+original_text = original_text#[0:1000]
 original_text_length = len(original_text)
 
 # Refined Text
@@ -351,7 +351,7 @@ for iteration in range(1, 31):
             generated = generated.replace(v, k)
 
         with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8-sig', mode='a') as f:
-            f.write('-----test data with diacritics: \n' + generated)
+            f.write('test data with diacritics: \n' + generated)
 
         statistics_result = 'Iteration ' + str(iteration)
         statistics_result += '\nNumber of Epoch: ' + str(number_of_epoch)
@@ -366,18 +366,25 @@ for iteration in range(1, 31):
         statistics_result += '\nAccuracy in Entire Testing data: ' + \
                              str(round((correct_prediction/(correct_prediction + wrong_prediction)) * 100, 4)) + ' %'
 
-        statistics_result += '\nnp.array(list(diacritics)): \n' + str(np.array(list(diacritics)))
+        labels = np.array(list(diacritics))
+        statistics_result += '\nnp.array(list(diacritics)): \n' + str(labels)
 
-        statistics_result += '\nConfusion_matrix: \n' + str(confusion_matrix(y_true, y_pred,
-                                                                             labels=np.array(list(diacritics))))
+        confusion_matrix_output = confusion_matrix(y_true, y_pred, labels=labels)
+        statistics_result += '\nConfusion_matrix: \n' + str(confusion_matrix_output)
+
+        confusion_matrix_percentile = ''
+        for i in range(confusion_matrix_output.shape[0]):
+            s = sum(confusion_matrix_output[i])
+            confusion_matrix_percentile += str(([round(float(j)/s, 3) for j in confusion_matrix_output[i]])) + '\n'
+
+        statistics_result += '\nconfusion_matrix_percentile: \n' + confusion_matrix_percentile
         statistics_result += str('\n' + ('*' * 50) + '\n\n')
 
-        with codecs.open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8', mode='a') as f:
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Statistics.txt', encoding='utf-8-sig', mode='a') as f:
             f.write(statistics_result)
 
-        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8', mode='a') as f:
+        with codecs.open(EXPERIMENT_CONFIGURATION + '_Output.txt', encoding='utf-8-sig', mode='a') as f:
             f.write('\nEnd time: ' + str(datetime.now()) + '\n' + '\n')
-
 
 
         # model.save(EXPERIMENT_CONFIGURATION + '_Model.h5', overwrite=True)
