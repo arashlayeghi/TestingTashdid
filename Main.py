@@ -10,6 +10,8 @@ import re
 from sklearn.metrics import confusion_matrix
 from datetime import datetime
 from keras.layers.wrappers import Bidirectional
+from keras.layers.convolutional import MaxPooling1D, MaxPooling2D, Convolution1D, Convolution2D
+
 import os.path
 
 # ########################################Constants###########################################################
@@ -49,7 +51,7 @@ if os.path.exists('original_text.txt'):
     with codecs.open('original_text.txt', encoding='utf-8-sig') as original_text_file:
         original_text = original_text_file.read()
 else:
-    with codecs.open('Arabic_Training_Set_Revised1.txt', encoding='utf-8-sig') as myfile:
+    with codecs.open('Arabic_Training_Set_Revised3.txt', encoding='utf-8-sig') as myfile:
         text = myfile.read()
 
     original_text = text.strip()
@@ -262,18 +264,29 @@ with codecs.open('inputs.txt', encoding='utf-8', mode='w+') as f:
 # build the model: 2 stacked LSTM
 print('Build model...')
 
-nn = 32
-
 nn=64
 model = Sequential()
-model.add(GRU(nn*4, return_sequences=True, input_shape=(maxlen + maxlen_after, len(all_chars))))
-model.add(Dropout(0.10))
-model.add(GRU(nn*3, return_sequences=True))
-model.add(Dropout(0.10))
-#model.add(GRU(nn*2, return_sequences=True))
-#model.add(Dropout(0.10))
-model.add(GRU(nn))
-model.add(Dropout(0.10))
+
+model.add(GRU(nn*3, return_sequences=True, input_shape=(maxlen+maxlen_after, len(all_chars))))
+model.add(Dropout(0.05))
+
+model.add(GRU(nn*2, return_sequences=True))
+model.add(Dropout(0.05))
+
+model.add(Convolution1D(nb_filter=nn*3, filter_length=4, border_mode='same', activation='relu')) 
+model.add(MaxPooling1D(pool_length=4))
+model.add(Dropout(0.05))
+
+model.add(GRU(nn*2, return_sequences=True))
+model.add(Dropout(0.05))
+
+#model.add(Convolution1D(nb_filter=nn*3, filter_length=4, border_mode='same', activation='relu')) 
+#model.add(MaxPooling1D(pool_length=3))
+#model.add(Dropout(0.05))
+
+model.add(GRU(nn*1, return_sequences=False))
+model.add(Dropout(0.05))
+
 model.add(Dense((len(diacritics))))
 model.add(Activation('softmax'))
 
@@ -375,7 +388,7 @@ for iteration in range(1, 31):
         confusion_matrix_percentile = ''
         for i in range(confusion_matrix_output.shape[0]):
             s = sum(confusion_matrix_output[i])
-            confusion_matrix_percentile += str(([round(float(j)/s, 3) for j in confusion_matrix_output[i]])) + '\n'
+            confusion_matrix_percentile += str(([(0 if s==0 else round(float(j)/s, 3)) for j in confusion_matrix_output[i]])) + '\n'
 
         statistics_result += '\nconfusion_matrix_percentile: \n' + confusion_matrix_percentile
         statistics_result += str('\n' + ('*' * 50) + '\n\n')
